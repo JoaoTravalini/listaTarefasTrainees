@@ -93,4 +93,12 @@ export class AuthService {
   }
 
   // SIGN IN WITH GOOGLE
+
+  // REDIRECT TO EDIT TASK
+
+  redirectToEdit() {
+    this.router.navigate(['/lista']);
+  }
+
+  // REDIRECT TO EDIT TASK
 }

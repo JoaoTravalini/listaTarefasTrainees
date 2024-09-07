@@ -1,112 +1,87 @@
 <div class="page">
     <div class="addContainer">
-
-        <div class="titulo">
-          <h1>Lista de tarefas</h1>
-        </div>
-
-        <!-- Caso a lista ainda não esteja iniciada -->
-    
-        @if(!visualizarLista){
-            <div class="inicio">
-                <img src="../../../../assets/images/edit (1).png" alt="listaTarefas">
-
-                <div class="criar" (click)="ativarLista()"><h2>Criar lista de tarefas</h2></div>
-            </div>
-
-        <!-- Lista iniciada -->
-
-        } @else{
-
-            <!--  Formulário com campos: Título, Descrição e Dificuldade para a tarefa. Utilização dos Reactive Forms para o controle de cada campo. -->
-            <!--  Apertar o botão de enviar ativa a função onSubmit() que registra a tarefa -->
-
-            <form [formGroup]="tarefaForm" (ngSubmit)="onSubmit()">
-                <h3 style="margin-top: 0px;">Título</h3>
-                <input type="text" formControlName="titulo" placeholder="Insira o título da tarefa...">
-            
-                <h3>Descrição</h3>
-                <input type="text" formControlName="descricao" placeholder="Insira a descrição da tarefa...">
-            
-                <h3>Nível de dificuldade</h3>
-                <div class="opcoes">
-                  <label class="dificulty-btn">
-                    <input type="radio" formControlName="dificuldade" value="fácil"> Fácil
-                  </label>
-                  <label class="dificulty-btn">
-                    <input type="radio" formControlName="dificuldade" value="médio"> Médio
-                  </label>
-                  <label class="dificulty-btn">
-                    <input type="radio" formControlName="dificuldade" value="difícil"> Difícil
-                  </label>
-                </div>
-
-                <!--  Registro da tarefa. A atribuição do tipo "submit" no botão faz com que ele envie o formulário. -->
-            
-                <button type="submit" [disabled]="!tarefaForm.valid" [ngClass]="{ disabled: !tarefaForm.valid }">Adicionar</button>
-            </form>
-
-            <hr style="margin-top: 20px; margin-bottom: 20px; border-top: 1px solid #ccc;">
-
-            <div class="listagem">
-                <h2>Tarefas adicionadas ({{tarefas.length}})</h2>
-
-                <h3>Pendentes</h3>
-
-                <!--  Percorre todas as tarefas. -->
-                @for(tarefa of tarefas; track tarefa){
-
-                        <!--  Seleciona apenas tarefas que possuem o atributo "concluida" como false. -->
-                        @if(!tarefa.concluida){
-
-                            <div class="tarefa">
-                                <div class="header">
-                                    <h4>{{ tarefa.titulo }}</h4>
-        
-                                    <div class="icons">
-                                        <!--  Invoca funções para concluir a tarefa (enviar para as concluídas) e excluir a tarefa. -->
-                                        <span>
-                                            <i (click)="concluirTarefa(tarefa.titulo)" class="fa fa-check" aria-hidden="true"></i>
-                                            <i (click)="excluirTarefa(tarefa.titulo)" class="fa fa-times" aria-hidden="true"></i>
-                                            <i (click)="editarTarefa(tarefa.titulo)" class="fa fa-edit" aria-hidden="true"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="detalhes">
-                                    <p style="margin-bottom: 5px;">{{ tarefa.descricao }}</p>
-                                    <p style="text-transform: uppercase;"><strong>{{ tarefa.dificuldade }}</strong></p>
-                                </div>
-                            </div>
-                        }
-                }
-
-                <h3>Concluídas</h3>
-
-                <!--  Percorre as tarefas. -->
-                @for(tarefa of tarefas; track tarefa){
-
-                    <!--  Seleciona apenas tarefas que possuem o atributo "concluida" como true. -->
-                    @if(tarefa.concluida){
-                        <div class="tarefa">
-                            <div class="header">
-                                <h4>{{ tarefa.titulo }}</h4>
-    
-                                <div class="icons">
-                                    <span><i (click)="excluirTarefa(tarefa.titulo)" class="fa fa-times" aria-hidden="true"></i></span>
-                                </div>
-                            </div>
-                            
-                            <div class="detalhes">
-                                <p>{{ tarefa.descricao }}</p>
-                                <p style="text-transform: uppercase;"><strong>{{ tarefa.dificuldade }}</strong> </p>
-                            </div>
-                        </div>
-                    }
-
-            }
-            </div>
-        }
-        <button type="button" (click)="logout()">Logout</button>
+  
+      <div class="titulo" id="start"> 
+        <h1>{{tituloPagina}}</h1>
+      </div>          
+  
+      <!-- Caso a lista ainda não esteja iniciada -->
+      <div *ngIf="!visualizarLista" class="inicio">
+        <img src="../../../../assets/images/edit (1).png" alt="listaTarefas">
+        <div class="criar" (click)="ativarLista()"><h2>Criar lista de tarefas</h2></div>
       </div>
-</div>
+  
+      <!-- Lista iniciada -->
+      <div *ngIf="visualizarLista">
+        <!-- Formulário com campos: Título, Descrição e Dificuldade para a tarefa -->
+        <form [formGroup]="tarefaForm" (ngSubmit)="onSubmit()">
+          <h3 style="margin-top: 0px;">Título</h3>
+          <input type="text" formControlName="titulo" placeholder="Insira o título da tarefa...">
+          
+          <h3>Descrição</h3>
+          <input type="text" formControlName="descricao" placeholder="Insira a descrição da tarefa...">
+          
+          <h3>Nível de dificuldade</h3>
+          <div class="opcoes">
+            <label class="dificulty-btn">
+              <input type="radio" formControlName="dificuldade" value="fácil"> Fácil
+            </label>
+            <label class="dificulty-btn">
+              <input type="radio" formControlName="dificuldade" value="médio"> Médio
+            </label>
+            <label class="dificulty-btn">
+              <input type="radio" formControlName="dificuldade" value="difícil"> Difícil
+            </label>
+          </div>
+  
+          <button type="submit" [disabled]="!tarefaForm.valid" [ngClass]="{ disabled: !tarefaForm.valid }">
+            {{ tarefaEditada ? 'Atualizar' : 'Adicionar' }}
+          </button>
+        </form>
+  
+        <hr style="margin-top: 20px; margin-bottom: 20px; border-top: 1px solid #ccc;">
+  
+        <div class="listagem">
+          <h2>Tarefas adicionadas ({{tarefas.length}})</h2>
+  
+          <h3>Pendentes</h3>
+          <div *ngFor="let tarefa of tarefas">
+            <div *ngIf="!tarefa.concluida" class="tarefa">
+              <div class="header">
+                <h4>{{ tarefa.titulo }}</h4>
+                <div class="icons">
+                  <span>
+                    <i (click)="concluirTarefa(tarefa.titulo)" class="fa fa-check" aria-hidden="true"></i>
+                    <i (click)="excluirTarefa(tarefa.titulo)" class="fa fa-times" aria-hidden="true"></i>
+                    <i (click)="editarTarefa(tarefa.titulo)" class="fa fa-edit" aria-hidden="true"></i>
+                  </span>
+                </div>
+              </div>
+              <div class="detalhes">
+                <p style="margin-bottom: 5px;">{{ tarefa.descricao }}</p>
+                <p style="text-transform: uppercase;"><strong>{{ tarefa.dificuldade }}</strong></p>
+              </div>
+            </div>
+          </div>
+  
+          <h3>Concluídas</h3>
+          <div *ngFor="let tarefa of tarefas">
+            <div *ngIf="tarefa.concluida" class="tarefa">
+              <div class="header">
+                <h4>{{ tarefa.titulo }}</h4>
+                <div class="icons">
+                  <span><i (click)="excluirTarefa(tarefa.titulo)" class="fa fa-times" aria-hidden="true"></i></span>
+                </div>
+              </div>
+              <div class="detalhes">
+                <p>{{ tarefa.descricao }}</p>
+                <p style="text-transform: uppercase;"><strong>{{ tarefa.dificuldade }}</strong> </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" (click)="logout()">Logout</button>
+    </div>
+  </div>
+  
