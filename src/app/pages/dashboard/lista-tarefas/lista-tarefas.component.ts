@@ -1,95 +1,114 @@
-import { Component, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, AfterViewInit, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AuthService } from '../../../shared/auth.service';
+import { Task } from '../../../model/task';
+import { DataService } from '../../../shared/data.service';
 
 @Component({
   selector: 'app-lista-tarefas',
   templateUrl: './lista-tarefas.component.html',
   styleUrls: ['./lista-tarefas.component.scss']
 })
-export class ListaTarefasComponent implements AfterViewInit {
+export class ListaTarefasComponent implements AfterViewInit, OnInit {
 
   visualizarLista: boolean = false;
-  tarefaForm: FormGroup;
-  tarefas: any[] = [];
-  tarefaEditada: any = null;
-  tituloPagina: string = 'Lista de tarefas'; // Nova variável para o título
+  taskObj: Task = {
+    id: '',
+    titulo: '',
+    descricao: '',
+    dificuldade: 'fácil', // Definir um valor padrão
+    concluida: false,
+  };
+  titulo: string = '';
+  descricao: string = '';
+  dificuldade: string = 'fácil';
+  concluida: boolean = false;
+  tarefas: Task[] = [];
+  tarefaEditada: Task | null = null;
+  tituloPagina: string = 'Lista de tarefas'; // Título da página
 
-  constructor(private fb: FormBuilder, private db: AngularFirestore, private auth: AuthService) { 
-    this.tarefaForm = this.fb.group({
-      titulo: ['', Validators.required],
-      descricao: ['', Validators.required],
-      dificuldade: ['', Validators.required]
+  constructor(private data: DataService, private auth: AuthService) {}
+
+  ngOnInit() {
+    // Carregar as tarefas do Firestore quando o componente for inicializado
+    this.data.getAllTasks().subscribe((res: any) => {
+      this.tarefas = res.map((e: any) => {
+        const data = e.payload.doc.data();
+        return {
+          id: e.payload.doc.id,
+          ...data
+        } as Task;
+      });
     });
   }
 
   ngAfterViewInit() {
-    // Esse método é chamado após a visualização ser inicializada
     window.scrollTo(0, 0);
   }
 
+  // Adiciona ou atualiza tarefa
   onSubmit(): void {
     if (this.tarefaEditada) {
       this.atualizarTarefa();
     } else {
-      let tarefa = this.tarefaForm.value;
-      tarefa.concluida = false;
-      this.tarefas.push(tarefa);
-      this.tarefaForm.reset();
-      alert('Tarefa adicionada!');
+      const newTask: Task = {
+        id: '', 
+        titulo: this.titulo,
+        descricao: this.descricao,
+        dificuldade: this.dificuldade,
+        concluida: false,
+      };
+
+      this.data.addTask(newTask).then(() => {
+        alert('Tarefa adicionada!');
+        this.limparFormulario();
+      });
     }
   }
 
   ativarLista(): void {
     this.visualizarLista = true;
-    this.tituloPagina = 'Lista de tarefas'; // Reseta o título quando ativar a lista
+    this.tituloPagina = 'Lista de tarefas';
   }
 
-  concluirTarefa(titulo: string): void {
-    const index = this.tarefas.findIndex(t => t.titulo === titulo);
-    if (index !== -1) {
-      this.tarefas[index].concluida = true;
+  concluirTarefa(task: Task): void {
+    task.concluida = true;
+    this.data.updateTask(task);
+  }
+
+  excluirTarefa(task: Task): void {
+    if (window.confirm('Tem certeza que deseja deletar esta tarefa?')) {
+      this.data.deleteTask(task);
     }
   }
 
-  excluirTarefa(titulo: string): void {
-    const index = this.tarefas.findIndex(t => t.titulo === titulo);
-    if (index !== -1) {
-      this.tarefas.splice(index, 1);
-    }
-  }
-
-  editarTarefa(titulo: string): void {
-    const tarefa = this.tarefas.find(t => t.titulo === titulo);
-    if (tarefa) {
-      this.tarefaForm.setValue({
-        titulo: tarefa.titulo,
-        descricao: tarefa.descricao,
-        dificuldade: tarefa.dificuldade
-      });
-      this.tarefaEditada = tarefa;
-      this.visualizarLista = true;
-      this.tituloPagina = 'Editando tarefa'; // Atualiza o título para "Editando tarefa"
-      window.scrollTo(0, 0); // Rola para o topo da página
-    } else {
-      alert('Tarefa não encontrada!');
-    }
+  editarTarefa(task: Task): void {
+    this.titulo = task.titulo;
+    this.descricao = task.descricao;
+    this.dificuldade = task.dificuldade;
+    this.tarefaEditada = task;
+    this.visualizarLista = true;
+    this.tituloPagina = 'Editando tarefa';
+    window.scrollTo(0, 0);
   }
 
   atualizarTarefa(): void {
     if (this.tarefaEditada) {
-      const index = this.tarefas.findIndex(t => t.titulo === this.tarefaEditada.titulo);
-      if (index !== -1) {
-        const tarefaAtualizada = this.tarefaForm.value;
-        tarefaAtualizada.concluida = this.tarefaEditada.concluida;
-        this.tarefas[index] = tarefaAtualizada;
-        this.tarefaForm.reset();
-        this.tarefaEditada = null;
-        this.tituloPagina = 'Lista de tarefas'; // Reseta o título após atualizar a tarefa
+      this.tarefaEditada.titulo = this.titulo;
+      this.tarefaEditada.descricao = this.descricao;
+      this.tarefaEditada.dificuldade = this.dificuldade;
+      this.data.updateTask(this.tarefaEditada).then(() => {
         alert('Tarefa atualizada!');
-      }
+        this.limparFormulario();
+      });
     }
+  }
+
+  limparFormulario() {
+    this.titulo = '';
+    this.descricao = '';
+    this.dificuldade = 'fácil';
+    this.tarefaEditada = null;
   }
 
   logout(): void {
